@@ -60,49 +60,79 @@ long getDistance() {
 
 long scanDirection(int angle) {
   sensorServo.write(angle);
-  delay(400); // allow servo to reach position
+  delay(500); // allow servo to reach position (increased for accuracy)
   long d = getDistance();
-  delay(100); // allow sensor to settle
+  delay(120); // allow sensor to settle
   return d;
 }
 
 void moveForward() {
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  // Soft start for smooth acceleration
+  for (int pwm = 120; pwm <= 200; pwm += 20) {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
+    delay(20);
+  }
   analogWrite(ENA, 200);
   analogWrite(ENB, 200);
 }
 
 void moveBackward() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  // Soft start for smooth reverse
+  for (int pwm = 120; pwm <= 200; pwm += 20) {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
+    delay(20);
+  }
   analogWrite(ENA, 200);
   analogWrite(ENB, 200);
 }
 
 void turnLeft() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  // Smooth pivot turn left
+  for (int pwm = 120; pwm <= 200; pwm += 20) {
+    digitalWrite(IN1, LOW);   // Left motor backward
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);  // Right motor forward
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
+    delay(20);
+  }
   analogWrite(ENA, 200);
   analogWrite(ENB, 200);
 }
 
 void turnRight() {
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  // Smooth pivot turn right
+  for (int pwm = 120; pwm <= 200; pwm += 20) {
+    digitalWrite(IN1, HIGH);  // Left motor forward
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);   // Right motor backward
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
+    delay(20);
+  }
   analogWrite(ENA, 200);
   analogWrite(ENB, 200);
 }
 
 void stopMotors() {
+  // Soft stop for smooth deceleration
+  for (int pwm = 200; pwm >= 0; pwm -= 40) {
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
+    delay(10);
+  }
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -127,14 +157,14 @@ void loop() {
     stopMotors();
     delay(200);
     turnLeft();
-    delay(500);
+    delay(700); // Increased delay for more effective pivot
     stopMotors();
     delay(200);
   } else if (rightDist > OBSTACLE_DIST) {
     stopMotors();
     delay(200);
     turnRight();
-    delay(500);
+    delay(700); // Increased delay for more effective pivot
     stopMotors();
     delay(200);
   } else {

@@ -1,4 +1,5 @@
 # Arduino Uno Obstacle Avoidance Car
+An autonomous car project using Arduino Uno, ultrasonic sensor, and motor driver for obstacle avoidance.
 
 ## Overview
 This project is an Arduino Uno-based robotic car that uses an HC-SR04 ultrasonic sensor to detect obstacles and automatically navigates around them using four geared DC motors controlled by an L298N motor driver.
