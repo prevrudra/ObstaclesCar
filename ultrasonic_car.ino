@@ -1,5 +1,5 @@
 // Arduino Uno Car with Ultrasonic Obstacle Avoidance
-// Uses HC-SR04 ultrasonic sensor and L298N motor driver
+// Uses HC-SR04 ultrasonic sensor, L298N motor driver, and servo for sensor scanning
 
 // Motor pins (L298N)
 #define IN1 2
@@ -13,8 +13,19 @@
 #define TRIG 6
 #define ECHO 7
 
+// Servo pin for ultrasonic sensor
+#define SERVO_PIN 8
+
 // Distance threshold (in cm)
 #define OBSTACLE_DIST 20
+
+#include <Servo.h>
+Servo sensorServo;
+
+// Servo angles for scanning
+#define CENTER_ANGLE 90
+#define LEFT_ANGLE 150
+#define RIGHT_ANGLE 30
 
 void setup() {
   // Motor pins
@@ -29,6 +40,10 @@ void setup() {
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
 
+  // Servo setup
+  sensorServo.attach(SERVO_PIN);
+  sensorServo.write(CENTER_ANGLE);
+
   Serial.begin(9600);
 }
 
@@ -38,9 +53,17 @@ long getDistance() {
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long duration = pulseIn(ECHO, HIGH);
+  long duration = pulseIn(ECHO, HIGH, 30000); // timeout for safety
   long distance = duration * 0.034 / 2;
   return distance;
+}
+
+long scanDirection(int angle) {
+  sensorServo.write(angle);
+  delay(400); // allow servo to reach position
+  long d = getDistance();
+  delay(100); // allow sensor to settle
+  return d;
 }
 
 void moveForward() {
@@ -89,22 +112,37 @@ void stopMotors() {
 }
 
 void loop() {
-  long distance = getDistance();
-  Serial.print("Distance: ");
-  Serial.println(distance);
+  // Scan center, left, right
+  long centerDist = scanDirection(CENTER_ANGLE);
+  long leftDist = scanDirection(LEFT_ANGLE);
+  long rightDist = scanDirection(RIGHT_ANGLE);
 
-  if (distance > OBSTACLE_DIST) {
+  Serial.print("Center: "); Serial.print(centerDist);
+  Serial.print(" | Left: "); Serial.print(leftDist);
+  Serial.print(" | Right: "); Serial.println(rightDist);
+
+  if (centerDist > OBSTACLE_DIST) {
     moveForward();
-  } else {
+  } else if (leftDist > OBSTACLE_DIST) {
     stopMotors();
-    delay(300);
-    moveBackward();
+    delay(200);
+    turnLeft();
     delay(500);
     stopMotors();
-    delay(300);
+    delay(200);
+  } else if (rightDist > OBSTACLE_DIST) {
+    stopMotors();
+    delay(200);
     turnRight();
     delay(500);
     stopMotors();
-    delay(300);
+    delay(200);
+  } else {
+    stopMotors();
+    delay(200);
+    moveBackward();
+    delay(500);
+    stopMotors();
+    delay(200);
   }
 }

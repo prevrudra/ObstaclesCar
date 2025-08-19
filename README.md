@@ -33,9 +33,12 @@ This project is an Arduino Uno-based robotic car that uses an HC-SR04 ultrasonic
 
 ## How It Works
 1. The car moves forward by default.
-2. The ultrasonic sensor continuously measures the distance to obstacles ahead.
-3. If an obstacle is detected within 20 cm, the car stops, reverses, turns right, and then resumes forward movement.
-4. All actions are logged to the Serial Monitor for debugging.
+2. The ultrasonic sensor (mounted on a servo) scans left, center, and right to detect obstacles.
+3. If an obstacle is detected ahead, the car decides whether to turn left, right, or reverse based on which direction is clear.
+4. **Turning without steering:**
+	- The car uses differential drive to turn in place. This means the left wheels move forward while the right wheels move backward (or vice versa), causing the car to rotate or pivot without any steering mechanism. All wheels are fixed and do not rotate sideways.
+	- This method allows the car to change direction even though it does not have a traditional steering system.
+5. All actions are logged to the Serial Monitor for debugging.
 
 ## Setup Instructions
 1. Assemble the car chassis and mount the motors and wheels.
